@@ -1,0 +1,231 @@
+.payment-modal {
+  padding: 0;
+}
+
+.payment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.payment-header h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+}
+
+.payment-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  gap: 4px;
+}
+
+.amount-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.amount-inr {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.amount-usdc {
+  font-size: 0.875rem;
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.amount-rate {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px 16px;
+  gap: 8px;
+}
+
+.qr-wrapper {
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-lg);
+}
+
+.qr-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.upi-apps {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 24px 16px;
+}
+
+.upi-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.upi-app:hover {
+  background: var(--bg-glass-hover);
+  border-color: var(--border-light);
+}
+
+.upi-app-icon {
+  font-size: 1.5rem;
+}
+
+.upi-app-name {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.upi-vpa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  margin: 0 24px 16px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.vpa-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.vpa-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-accent);
+  font-family: var(--font-mono);
+}
+
+.payment-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px 16px;
+}
+
+.mvp-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.mvp-badge {
+  padding: 2px 8px;
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.6875rem;
+}
+
+.payment-btn {
+  width: 100%;
+}
+
+.payment-btn.processing {
+  opacity: 0.8;
+}
+
+.payment-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin: 0 24px 16px;
+  background: var(--error-bg);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  color: var(--error);
+}
+
+.payment-info {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payment-info p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.payment-confirmed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  gap: 12px;
+  text-align: center;
+}
+
+.confirmed-icon {
+  font-size: 3rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.payment-confirmed h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.payment-confirmed p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}

@@ -1,0 +1,87 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IERC8004Reputation",
+  "sourceName": "contracts/interfaces/IERC8004Reputation.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_agentId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAverageScore",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_agentId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getFeedbackCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_agentId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "int128",
+          "name": "_score",
+          "type": "int128"
+        },
+        {
+          "internalType": "uint8",
+          "name": "_decimals",
+          "type": "uint8"
+        },
+        {
+          "internalType": "string",
+          "name": "_tags",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_feedbackURI",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_contentHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "giveFeedback",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
