@@ -8,7 +8,9 @@ const __dirname = path.dirname(__filename);
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-
+  if (!deployer) {
+    throw new Error("No deployer account found. Make sure you have set a PRIVATE_KEY in your .env file.");
+  }
   console.log("╔══════════════════════════════════════════════════════════╗");
   console.log("║          PayAgent — Deploying to Monad Testnet          ║");
   console.log("╠══════════════════════════════════════════════════════════╣");

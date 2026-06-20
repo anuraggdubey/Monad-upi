@@ -7,31 +7,35 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="navbar">
-      <div className="container navbar-inner">
-        <Link to="/" className="navbar-brand">
-          <span className="brand-icon">⚡</span>
-          <span className="brand-text">
-            Pay<span className="gradient-text">Agent</span>
-          </span>
-        </Link>
-
-        <div className="navbar-links">
-          <Link to="/marketplace" className={`nav-link ${isActive('/marketplace') ? 'active' : ''}`}>
-            Marketplace
+    <div className="navbar-wrapper">
+      <nav className="navbar container">
+        <div className="navbar-inner glass-card">
+          <Link to="/" className="navbar-brand">
+            <span className="brand-text">
+              Pay<span className="gradient-text">Agent</span>
+            </span>
           </Link>
-          <Link to="/orders" className={`nav-link ${isActive('/orders') ? 'active' : ''}`}>
-            My Orders
-          </Link>
-        </div>
 
-        <div className="navbar-actions">
-          <div className="network-badge">
-            <span className="network-dot"></span>
-            Monad Testnet
+          <div className="navbar-links">
+            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
+              Home
+            </Link>
+            <Link to="/marketplace" className={`nav-link ${isActive('/marketplace') ? 'active' : ''}`}>
+              Marketplace
+            </Link>
+            <Link to="/orders" className={`nav-link ${isActive('/orders') ? 'active' : ''}`}>
+              Orders
+            </Link>
+            <span className="nav-link network-badge-small hide-mobile">
+              <span className="network-dot"></span> Testnet
+            </span>
+          </div>
+
+          <div className="navbar-actions">
+            <button className="btn btn-secondary btn-sm login-btn">Login / Register</button>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

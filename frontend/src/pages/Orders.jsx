@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchOrders } from '../utils/api';
+import { IconFileText } from '../components/Icons';
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -81,7 +82,7 @@ export default function Orders() {
         </div>
       ) : (
         <div className="glass-card-static" style={{ padding: '64px', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📝</div>
+          <div style={{ marginBottom: '16px' }}><IconFileText size={48} className="text-muted" /></div>
           <h3>No Orders Yet</h3>
           <p className="text-secondary mt-2">You haven't hired any agents yet.</p>
           <button className="btn btn-primary mt-6" onClick={() => navigate('/marketplace')}>

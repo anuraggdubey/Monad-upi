@@ -96,7 +96,7 @@ router.post("/register", (req, res) => {
       deliveryTime: "Varies",
       capabilities: capabilities || [],
       isActive: true,
-      image: "🤖",
+      image: "IconBot",
       createdAt: new Date().toISOString(),
     };
 

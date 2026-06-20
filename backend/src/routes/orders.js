@@ -1,10 +1,11 @@
 /**
  * PayAgent — Order Routes
  * 
- * POST /api/orders                  - Create a new order (generates UPI payment)
+ * POST /api/orders                  - Create a new order (generates UPI payment or Razorpay order)
  * GET  /api/orders                  - List user's orders
  * GET  /api/orders/:id              - Get order details
- * POST /api/orders/:id/simulate-pay - Simulate UPI payment (MVP)
+ * POST /api/orders/:id/simulate-pay - Simulate UPI payment (fallback/demo mode)
+ * POST /api/orders/:id/verify-payment - Verify Razorpay payment (real mode)
  * POST /api/orders/:id/confirm      - Confirm delivery & release payment
  * POST /api/orders/:id/dispute      - Raise a dispute
  * POST /api/orders/:id/feedback     - Submit feedback/rating
@@ -13,7 +14,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { getAgentByAgentId, createOrder, getOrderById, getOrdersByUserId, updateOrder } from "../config/database.js";
-import { generateUPIPayment, simulatePaymentConfirmation, inrToUsdc } from "../services/payment.js";
+import { generateUPIPayment, simulatePaymentConfirmation, inrToUsdc, isRazorpayConfigured, createRazorpayOrder, verifyRazorpayPaymentSignature } from "../services/payment.js";
 import { createOnChainEscrow, releaseOnChainPayment, submitMockDelivery, getOnChainEscrow } from "../services/escrow.js";
 
 const router = Router();
@@ -32,7 +33,7 @@ function broadcast(orderId, event, data) {
 
 /**
  * POST /api/orders
- * Create a new order — generates UPI payment link
+ * Create a new order — Razorpay (real) or simulated payment
  */
 router.post("/", async (req, res) => {
   try {
@@ -51,57 +52,113 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ success: false, error: "Agent not found" });
     }
 
-    // Generate UPI payment
-    const payment = generateUPIPayment(null, agent.priceINR, agent.name);
+    const useRazorpay = isRazorpayConfigured();
 
-    // Create order in store
-    const order = createOrder({
-      userId: req.body.userId || "anonymous",
-      agentId: agent.agentId,
-      agentName: agent.name,
-      agentImage: agent.image,
-      agentCategory: agent.category,
-      taskDescription,
-      amountINR: agent.priceINR,
-      amountUSDC: agent.priceUSDC,
-      platformFeeUSDC: Number((agent.priceUSDC * 0.025).toFixed(6)),
-      upiTransactionId: payment.upiTransactionId,
-      payment,
-      escrowId: null,
-      txHashes: {},
-      deliveryURI: null,
-      rating: null,
-      feedback: null,
-      deadline: deadline || "24h",
-      statusHistory: [
-        { status: "pending", timestamp: new Date().toISOString(), note: "Order created, awaiting UPI payment" },
-      ],
-    });
-
-    console.log(`📦 Order created: ${order.id} | Agent: ${agent.name} | ₹${agent.priceINR}`);
-
-    res.status(201).json({
-      success: true,
-      data: {
-        orderId: order.id,
-        agent: {
-          id: agent.agentId,
-          name: agent.name,
-          image: agent.image,
-        },
+    if (useRazorpay) {
+      // ── Real Razorpay Mode ──────────────────────────────────
+      // Create internal order first (to get the ID for receipt)
+      const order = createOrder({
+        userId: req.body.userId || "anonymous",
+        agentId: agent.agentId,
+        agentName: agent.name,
+        agentImage: agent.image,
+        agentCategory: agent.category,
+        taskDescription,
         amountINR: agent.priceINR,
         amountUSDC: agent.priceUSDC,
-        payment: {
-          upiTransactionId: payment.upiTransactionId,
-          upiLink: payment.upiLink,
-          qrData: payment.qrData,
-          merchantVPA: payment.merchantVPA,
-          supportedApps: payment.supportedApps,
-          conversionRate: payment.conversionRate,
+        platformFeeUSDC: Number((agent.priceUSDC * 0.025).toFixed(6)),
+        upiTransactionId: null,
+        razorpayOrderId: null, // Will be set below
+        payment: null,
+        escrowId: null,
+        txHashes: {},
+        deliveryURI: null,
+        rating: null,
+        feedback: null,
+        deadline: deadline || "24h",
+        statusHistory: [
+          { status: "pending", timestamp: new Date().toISOString(), note: "Order created, awaiting Razorpay payment" },
+        ],
+      });
+
+      // Create Razorpay order
+      const rzpOrder = await createRazorpayOrder(agent.priceINR, order.id, agent.name);
+
+      // Update our order with the Razorpay order ID
+      updateOrder(order.id, { razorpayOrderId: rzpOrder.id });
+
+      console.log(`📦 Order created (Razorpay): ${order.id} | Razorpay: ${rzpOrder.id} | ₹${agent.priceINR}`);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          orderId: order.id,
+          mode: "razorpay",
+          agent: {
+            id: agent.agentId,
+            name: agent.name,
+            image: agent.image,
+          },
+          amountINR: agent.priceINR,
+          amountUSDC: agent.priceUSDC,
+          razorpayOrderId: rzpOrder.id,
+          razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+          status: "pending",
         },
-        status: "pending",
-      },
-    });
+      });
+    } else {
+      // ── Simulate Mode (Fallback) ────────────────────────────
+      const payment = generateUPIPayment(null, agent.priceINR, agent.name);
+
+      const order = createOrder({
+        userId: req.body.userId || "anonymous",
+        agentId: agent.agentId,
+        agentName: agent.name,
+        agentImage: agent.image,
+        agentCategory: agent.category,
+        taskDescription,
+        amountINR: agent.priceINR,
+        amountUSDC: agent.priceUSDC,
+        platformFeeUSDC: Number((agent.priceUSDC * 0.025).toFixed(6)),
+        upiTransactionId: payment.upiTransactionId,
+        payment,
+        escrowId: null,
+        txHashes: {},
+        deliveryURI: null,
+        rating: null,
+        feedback: null,
+        deadline: deadline || "24h",
+        statusHistory: [
+          { status: "pending", timestamp: new Date().toISOString(), note: "Order created, awaiting UPI payment" },
+        ],
+      });
+
+      console.log(`📦 Order created (simulate): ${order.id} | Agent: ${agent.name} | ₹${agent.priceINR}`);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          orderId: order.id,
+          mode: "simulate",
+          agent: {
+            id: agent.agentId,
+            name: agent.name,
+            image: agent.image,
+          },
+          amountINR: agent.priceINR,
+          amountUSDC: agent.priceUSDC,
+          payment: {
+            upiTransactionId: payment.upiTransactionId,
+            upiLink: payment.upiLink,
+            qrData: payment.qrData,
+            merchantVPA: payment.merchantVPA,
+            supportedApps: payment.supportedApps,
+            conversionRate: payment.conversionRate,
+          },
+          status: "pending",
+        },
+      });
+    }
   } catch (err) {
     console.error("❌ Order creation failed:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -109,9 +166,154 @@ router.post("/", async (req, res) => {
 });
 
 /**
+ * POST /api/orders/:id/verify-payment
+ * Verify Razorpay payment after checkout completes on frontend
+ */
+router.post("/:id/verify-payment", async (req, res) => {
+  try {
+    const order = getOrderById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required Razorpay fields: razorpay_order_id, razorpay_payment_id, razorpay_signature",
+      });
+    }
+
+    // Verify the payment signature
+    const isValid = verifyRazorpayPaymentSignature(
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature
+    );
+
+    if (!isValid) {
+      console.warn(`❌ Payment signature verification failed for order ${order.id}`);
+      return res.status(400).json({ success: false, error: "Payment signature verification failed" });
+    }
+
+    console.log(`✅ Payment verified: ${razorpay_payment_id} for order ${order.id}`);
+
+    // Update order status
+    updateOrder(order.id, {
+      status: "paid",
+      upiTransactionId: razorpay_payment_id,
+      paymentConfirmation: {
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
+        razorpaySignature: razorpay_signature,
+        confirmedAt: new Date().toISOString(),
+        method: "razorpay",
+      },
+      statusHistory: [
+        ...order.statusHistory,
+        { status: "paid", timestamp: new Date().toISOString(), note: "Razorpay payment verified" },
+      ],
+    });
+
+    broadcast(order.id, "order.status_update", { status: "paid" });
+
+    // Create on-chain escrow
+    console.log(`⛓️  Creating escrow on Monad for order ${order.id}...`);
+    const userAddress = req.body.userAddress || "0x0000000000000000000000000000000000000001";
+
+    const escrowResult = await createOnChainEscrow(
+      userAddress,
+      order.agentId,
+      order.amountUSDC,
+      order.taskDescription,
+      razorpay_payment_id
+    );
+
+    updateOrder(order.id, {
+      status: "escrowed",
+      escrowId: escrowResult.escrowId,
+      txHashes: {
+        ...order.txHashes,
+        createEscrow: escrowResult.createTxHash,
+        fundEscrow: escrowResult.fundTxHash,
+      },
+      onChain: escrowResult.onChain,
+      statusHistory: [
+        ...getOrderById(order.id).statusHistory,
+        {
+          status: "escrowed",
+          timestamp: new Date().toISOString(),
+          note: `Funds escrowed on Monad${escrowResult.onChain ? "" : " (mock)"}`,
+          txHash: escrowResult.fundTxHash,
+        },
+      ],
+    });
+
+    broadcast(order.id, "order.status_update", { status: "escrowed", txHash: escrowResult.fundTxHash });
+
+    // Auto-simulate agent work
+    setTimeout(async () => {
+      const currentOrder = getOrderById(order.id);
+      if (currentOrder && currentOrder.status === "escrowed") {
+        updateOrder(order.id, {
+          status: "in_progress",
+          statusHistory: [
+            ...currentOrder.statusHistory,
+            { status: "in_progress", timestamp: new Date().toISOString(), note: "Agent started working" },
+          ],
+        });
+        broadcast(order.id, "order.status_update", { status: "in_progress" });
+
+        setTimeout(async () => {
+          const updatedOrder = getOrderById(order.id);
+          if (updatedOrder && updatedOrder.status === "in_progress") {
+            const delivery = await submitMockDelivery(updatedOrder.escrowId);
+            updateOrder(order.id, {
+              status: "delivered",
+              deliveryURI: delivery.deliveryURI,
+              txHashes: { ...updatedOrder.txHashes, delivery: delivery.txHash },
+              deliveredAt: new Date().toISOString(),
+              deliveryResult: generateMockDeliveryResult(updatedOrder.agentCategory, updatedOrder.taskDescription),
+              statusHistory: [
+                ...updatedOrder.statusHistory,
+                {
+                  status: "delivered",
+                  timestamp: new Date().toISOString(),
+                  note: "Agent delivered result",
+                  txHash: delivery.txHash,
+                },
+              ],
+            });
+            broadcast(order.id, "order.status_update", { status: "delivered", deliveryURI: delivery.deliveryURI });
+          }
+        }, 5000);
+      }
+    }, 2000);
+
+    res.json({
+      success: true,
+      data: {
+        orderId: order.id,
+        status: "escrowed",
+        escrowId: escrowResult.escrowId,
+        onChain: escrowResult.onChain,
+        txHashes: {
+          createEscrow: escrowResult.createTxHash,
+          fundEscrow: escrowResult.fundTxHash,
+        },
+        message: "Razorpay payment verified → Funds escrowed on Monad. Agent will begin shortly.",
+      },
+    });
+  } catch (err) {
+    console.error("❌ Payment verification failed:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
  * POST /api/orders/:id/simulate-pay
- * Simulate UPI payment confirmation (MVP only)
- * In production, this would be triggered by Razorpay webhook
+ * Simulate UPI payment confirmation (fallback/demo mode)
  */
 router.post("/:id/simulate-pay", async (req, res) => {
   try {

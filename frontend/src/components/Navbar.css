@@ -1,32 +1,38 @@
-.navbar {
+.navbar-wrapper {
   position: sticky;
-  top: 0;
+  top: 24px;
   z-index: 100;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-subtle);
+  width: 100%;
+  pointer-events: none; /* Let clicks pass through wrapper */
+}
+
+.navbar {
+  pointer-events: auto;
 }
 
 .navbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  gap: 32px;
+  height: 60px;
+  padding: 0 16px 0 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-primary);
   text-decoration: none;
-}
-
-.brand-icon {
-  font-size: 1.5rem;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.03em;
 }
 
 .brand-text {
@@ -35,46 +41,41 @@
 
 .navbar-links {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 4px;
+  border-radius: 99px;
 }
 
 .nav-link {
-  padding: 8px 16px;
+  padding: 8px 20px;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
-  border-radius: var(--radius-md);
+  border-radius: 99px;
   transition: all var(--transition-fast);
   text-decoration: none;
 }
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: var(--bg-glass-hover);
 }
 
 .nav-link.active {
-  color: var(--accent-primary);
-  background: rgba(131, 110, 249, 0.1);
+  color: var(--text-primary);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.network-badge {
+.network-badge-small {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 8px 16px;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--success);
-  background: var(--success-bg);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: var(--radius-full);
 }
 
 .network-dot {
@@ -85,7 +86,30 @@
   animation: pulse 2s infinite;
 }
 
+.navbar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.login-btn {
+  background: #111111;
+  color: #ffffff;
+  border: none;
+  border-radius: 99px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.login-btn:hover {
+  background: #2a2a2a;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
+  .navbar-inner {
+    padding: 0 12px 0 20px;
+  }
   .navbar-links {
     display: none;
   }

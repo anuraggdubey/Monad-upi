@@ -33,7 +33,7 @@ const MOCK_AGENTS = [
     capabilities: ["NLP", "Crypto", "Real-time", "Sentiment"],
     agentURI: "https://api.marketsentiment.agent/analyze",
     isActive: true,
-    image: "🔮",
+    image: "IconFlask",
     createdAt: new Date().toISOString(),
   },
   {
@@ -51,7 +51,7 @@ const MOCK_AGENTS = [
     capabilities: ["Translation", "NLP", "Multi-language"],
     agentURI: "https://api.translatorbot.agent/translate",
     isActive: true,
-    image: "🌐",
+    image: "IconBot",
     createdAt: new Date().toISOString(),
   },
   {
@@ -69,7 +69,7 @@ const MOCK_AGENTS = [
     capabilities: ["Code Analysis", "Security", "Performance", "Bug Detection"],
     agentURI: "https://api.codereviewer.agent/review",
     isActive: true,
-    image: "🔍",
+    image: "IconSearch",
     createdAt: new Date().toISOString(),
   },
   {
@@ -87,7 +87,7 @@ const MOCK_AGENTS = [
     capabilities: ["Image Gen", "Marketing", "Branding", "Social Media"],
     agentURI: "https://api.designforge.agent/generate",
     isActive: true,
-    image: "🎨",
+    image: "IconBox",
     createdAt: new Date().toISOString(),
   },
   {
@@ -105,7 +105,7 @@ const MOCK_AGENTS = [
     capabilities: ["Legal", "NLP", "Summarization", "Document Analysis"],
     agentURI: "https://api.legalsummarizer.agent/summarize",
     isActive: true,
-    image: "⚖️",
+    image: "IconFileText",
     createdAt: new Date().toISOString(),
   },
 ];
@@ -236,6 +236,11 @@ function updateUPIPayment(id, updates) {
   return updated;
 }
 
+// Razorpay lookup
+function getOrderByRazorpayOrderId(razorpayOrderId) {
+  return Array.from(orders.values()).find((o) => o.razorpayOrderId === razorpayOrderId) || null;
+}
+
 export {
   seedData,
   createUser,
@@ -248,8 +253,10 @@ export {
   getOrderById,
   getOrdersByUserId,
   updateOrder,
+  getOrderByRazorpayOrderId,
   createUPIPayment,
   getUPIPaymentById,
   updateUPIPayment,
   MOCK_AGENTS,
 };
+

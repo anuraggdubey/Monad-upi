@@ -1,9 +1,68 @@
 .agent-card {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  transition: transform var(--transition-base);
+  cursor: pointer;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.05));
+}
+
+.agent-card:hover {
+  transform: translateY(-4px);
+  filter: drop-shadow(0 15px 40px rgba(0,0,0,0.1));
+}
+
+/* Identity Half (Top) */
+.agent-card-identity {
+  background: var(--paper);
+  color: var(--ink);
   padding: 24px;
+  border: 1px solid var(--border-light);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  cursor: pointer;
+  position: relative;
+}
+
+/* Perforation Divider */
+.agent-card-perforation {
+  position: relative;
+  height: 2px;
+  background: var(--paper); /* The container background behind the dashes */
+  z-index: 1;
+}
+
+.agent-card-perforation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-image: linear-gradient(to right, #ccc 50%, transparent 50%);
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+}
+
+/* Cutouts on the sides of the perforation */
+.agent-card-perforation::after,
+.agent-card-perforation::first-letter { /* Just a hack to get a second pseudo element if needed, but let's use actual divs if we want half-circle cutouts. Let's just keep it simple with dashed line for now */
+}
+
+/* Ledger Half (Bottom) */
+.agent-card-ledger {
+  background: var(--indigo);
+  color: var(--paper);
+  padding: 20px 24px;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--font-mono);
 }
 
 .agent-card-header {
@@ -13,34 +72,46 @@
 }
 
 .agent-avatar {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
-  background: var(--bg-glass);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  font-size: 1.5rem;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
   flex-shrink: 0;
+  color: var(--ink);
 }
 
 .agent-meta {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .agent-name {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink);
   line-height: 1.2;
 }
 
+.agent-category-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .agent-description {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: #444;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -55,71 +126,108 @@
 }
 
 .capability-tag {
-  padding: 3px 10px;
+  font-family: var(--font-mono);
+  padding: 4px 8px;
   font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  background: var(--bg-glass);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
+  color: var(--ink);
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 4px;
 }
 
-.agent-stats {
+/* Ledger Stats */
+.ledger-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  padding: 12px 0;
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 16px;
+  border-bottom: 1px dashed rgba(255,255,255,0.15);
 }
 
-.stat {
+.ledger-stat {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.stat-label {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--text-muted);
+.ledger-label {
+  font-size: 0.625rem;
+  color: rgba(255,255,255,0.5);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
-.stat-value {
+.ledger-value {
   font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  color: var(--paper);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.rating-num {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+.ledger-value .stars {
+  color: var(--saffron);
 }
 
-.agent-card-footer {
+.ledger-value .stars .empty {
+  color: rgba(255,255,255,0.2);
+}
+
+/* Ledger Footer */
+.ledger-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: auto;
 }
 
-.agent-price {
+.ledger-price {
   display: flex;
   flex-direction: column;
 }
 
-.price-inr {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text-primary);
+.ledger-price .inr {
+  font-size: 1.125rem;
+  color: var(--saffron);
+  font-weight: 500;
 }
 
-.price-usdc {
+.ledger-price .usdc {
   font-size: 0.6875rem;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.4);
+}
+
+/* Live Status Dot */
+.live-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.03);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 8px var(--mint);
+  animation: pulseDot 2s infinite;
+}
+
+.status-dot.idle {
+  background: rgba(255,255,255,0.3);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes pulseDot {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
 }

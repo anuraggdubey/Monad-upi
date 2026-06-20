@@ -1,147 +1,189 @@
+/* ── Live Ticker ──────────────────────────────────────────────── */
+.live-ticker-strip {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background: var(--indigo);
+  color: var(--mint);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 8px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 40px;
+}
+
+.ticker-content {
+  display: flex;
+  gap: 40px;
+  animation: scrollTicker 30s linear infinite;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticker-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--mint);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--mint);
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes scrollTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Marketplace Layout ───────────────────────────────────────── */
 .marketplace {
-  padding: 40px 24px;
+  padding: 0 0 80px 0;
 }
 
 .marketplace-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
   margin-bottom: 40px;
-  gap: 24px;
-  flex-wrap: wrap;
 }
 
 .page-title {
+  font-family: var(--font-heading);
   font-size: 2.5rem;
-  font-weight: 800;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
   letter-spacing: -0.02em;
 }
 
 .page-subtitle {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
-}
-
-.marketplace-controls {
-  flex: 1;
-  max-width: 400px;
-}
-
-.search-input {
-  background: var(--bg-card);
-}
-
-.marketplace-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 32px;
-  align-items: start;
-}
-
-.filters-sidebar {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  position: sticky;
-  top: 88px;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.filter-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--saffron);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
-.filter-options {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.radio-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  font-size: 0.9375rem;
-  color: var(--text-primary);
-  transition: color var(--transition-fast);
-}
-
-.radio-label:hover {
-  color: var(--accent-primary);
-}
-
-.radio-label input[type="radio"] {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--border-light);
-  border-radius: 50%;
-  outline: none;
-  background: var(--bg-secondary);
+/* ── Ledger Lookup (Search) ───────────────────────────────────── */
+.ledger-lookup-container {
+  margin-bottom: 32px;
+  max-width: 600px;
   position: relative;
-  cursor: pointer;
-  transition: all var(--transition-fast);
 }
 
-.radio-label input[type="radio"]:checked {
-  border-color: var(--accent-primary);
+.ledger-lookup-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--ink);
+  padding: 16px 0;
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  color: var(--ink);
+  outline: none;
+  border-radius: 0;
 }
 
-.radio-label input[type="radio"]:checked::after {
-  content: '';
+.ledger-lookup-input::placeholder {
+  color: #888;
+}
+
+.ledger-lookup-input:focus {
+  border-bottom-color: var(--saffron);
+}
+
+.search-icon-mono {
   position: absolute;
+  right: 0;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
-  background: var(--accent-primary);
-  border-radius: 50%;
+  transform: translateY(-50%);
+  color: var(--ink);
 }
 
+/* ── Folder Tabs (Filters) ────────────────────────────────────── */
+.registry-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 32px;
+  gap: 24px;
+}
+
+.folder-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: -2px; /* Overlap the bottom border */
+}
+
+.folder-tab-label {
+  cursor: pointer;
+}
+
+.folder-tab-label input[type="radio"] {
+  display: none;
+}
+
+.folder-tab-text {
+  display: inline-block;
+  padding: 12px 24px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #666;
+  background: rgba(0,0,0,0.03);
+  border: 2px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.2s ease;
+}
+
+.folder-tab-label:hover .folder-tab-text {
+  color: var(--ink);
+  background: rgba(0,0,0,0.06);
+}
+
+.folder-tab-label input[type="radio"]:checked + .folder-tab-text {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+/* ── Ledger Sort ──────────────────────────────────────────────── */
+.ledger-sort {
+  padding-bottom: 12px;
+}
+
+.sort-select-mono {
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+  text-transform: uppercase;
+}
+
+/* ── Grid ─────────────────────────────────────────────────────── */
 .agents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 32px;
 }
 
 .empty-state {
   grid-column: 1 / -1;
-  padding: 64px 24px;
+  padding: 80px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-  opacity: 0.8;
-}
-
-.mt-16 {
-  margin-top: 16px;
-}
-
-@media (max-width: 900px) {
-  .marketplace-layout {
-    grid-template-columns: 1fr;
-  }
-  
-  .filters-sidebar {
-    position: static;
-  }
+  gap: 16px;
+  border: 1px dashed var(--ink);
+  background: transparent;
 }

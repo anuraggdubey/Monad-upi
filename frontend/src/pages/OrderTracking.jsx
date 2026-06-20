@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchOrder, createWebSocket, confirmOrder } from '../utils/api';
+import { IconCheck, IconLink, IconBot, IconBox, IconCheckCircle } from '../components/Icons';
 import './OrderTracking.css';
 
 export default function OrderTracking() {
@@ -11,20 +12,14 @@ export default function OrderTracking() {
 
   useEffect(() => {
     loadOrder();
-
-    // Set up WebSocket for real-time updates
     const ws = createWebSocket(id);
-    
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'order.status_update' || data.type === 'subscribed') {
-        loadOrder(); // Reload full order on status change
+        loadOrder();
       }
     };
-
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, [id]);
 
   const loadOrder = async () => {
@@ -56,175 +51,173 @@ export default function OrderTracking() {
   if (loading) return <div className="container mt-16"><div className="shimmer glass-card-static" style={{ height: '400px' }}></div></div>;
   if (!order) return <div className="container mt-16">Order not found</div>;
 
-  // Calculate progress
-  const getProgressWidth = () => {
-    switch(order.status) {
-      case 'pending': return '10%';
-      case 'paid': return '30%';
-      case 'escrowed': return '50%';
-      case 'in_progress': return '75%';
-      case 'delivered': return '90%';
-      case 'completed': return '100%';
-      default: return '0%';
-    }
+  const statuses = ['pending', 'paid', 'escrowed', 'in_progress', 'delivered', 'completed'];
+  const currentIndex = statuses.indexOf(order.status);
+
+  const getNodeStatus = (index) => {
+    if (index < currentIndex) return 'completed';
+    if (index === currentIndex) return 'active';
+    return 'upcoming';
   };
 
   return (
     <div className="order-tracking container">
       <div className="tracking-header">
-        <h1>Order Tracking</h1>
-        <span className="order-id">ID: {order.id.split('-')[0]}</span>
+        <h1>Order Execution</h1>
+        <span className="order-id-badge">ID: {order.id.split('-')[0]}</span>
       </div>
 
       <div className="tracking-grid">
-        {/* Main Status Area */}
-        <div className="status-main">
-          <div className="glass-card-static p-8 text-center">
-            {order.status === 'pending' && <div className="status-icon pulse">⏳</div>}
-            {order.status === 'paid' && <div className="status-icon">💸</div>}
-            {order.status === 'escrowed' && <div className="status-icon spin">⛓️</div>}
-            {order.status === 'in_progress' && <div className="status-icon pulse">🤖</div>}
-            {order.status === 'delivered' && <div className="status-icon bounce">📦</div>}
-            {order.status === 'completed' && <div className="status-icon">✅</div>}
-
-            <h2 className="mt-4 status-title">
-              {order.status === 'pending' && 'Awaiting Payment'}
-              {order.status === 'paid' && 'Payment Received'}
-              {order.status === 'escrowed' && 'Funds Escrowed on Monad'}
-              {order.status === 'in_progress' && 'Agent is Working'}
-              {order.status === 'delivered' && 'Results Delivered!'}
-              {order.status === 'completed' && 'Order Completed'}
-            </h2>
-
-            <p className="status-desc mt-2">
-              {order.status === 'pending' && 'Please complete the UPI payment.'}
-              {order.status === 'paid' && 'Payment simulated. Preparing escrow...'}
-              {order.status === 'escrowed' && 'Funds are locked safely. Agent is being notified.'}
-              {order.status === 'in_progress' && `${order.agentName} is processing your task.`}
-              {order.status === 'delivered' && 'The agent has completed the task. Please review the results.'}
-              {order.status === 'completed' && 'Payment has been released to the agent. Thank you!'}
-            </p>
-
-            {/* Progress Bar */}
-            <div className="progress-container mt-8">
-              <div className="progress-bar" style={{ width: getProgressWidth() }}></div>
-            </div>
-            
-            <div className="progress-labels mt-2">
-              <span className={['pending', 'paid'].includes(order.status) ? 'active' : 'passed'}>Payment</span>
-              <span className={['escrowed'].includes(order.status) ? 'active' : ['in_progress', 'delivered', 'completed'].includes(order.status) ? 'passed' : ''}>Escrow</span>
-              <span className={['in_progress'].includes(order.status) ? 'active' : ['delivered', 'completed'].includes(order.status) ? 'passed' : ''}>Working</span>
-              <span className={['delivered'].includes(order.status) ? 'active' : ['completed'].includes(order.status) ? 'passed' : ''}>Review</span>
-            </div>
-
-            {/* Actions */}
-            {order.status === 'delivered' && (
-              <div className="delivery-actions mt-8">
-                <button 
-                  className="btn btn-success btn-lg" 
-                  onClick={handleConfirm}
-                  disabled={confirming}
-                >
-                  {confirming ? 'Releasing Funds...' : 'Confirm & Release Payment'}
-                </button>
-              </div>
-            )}
+        {/* Main Pipeline Engine */}
+        <div className="pipeline-container">
+          <div className="pipeline-header">
+            <h2>Pipeline Engine</h2>
           </div>
 
-          {/* Delivery Results */}
-          {order.deliveryResult && (
-            <div className="glass-card-static p-6 mt-6 fade-in">
-              <h3>Delivery Results</h3>
-              <div className="delivery-result mt-4">
-                <h4 className="result-title">{order.deliveryResult.title}</h4>
-                <p className="result-summary">{order.deliveryResult.summary}</p>
+          <div className="timeline">
+            {/* Payment Node */}
+            <div className={`timeline-node ${getNodeStatus(1)}`}>
+              <div className="node-icon"><IconCheck size={24} /></div>
+              <div className="node-content">
+                <div className="node-title">Payment Verification</div>
+                <div className="node-desc">
+                  {currentIndex >= 1 ? 'UPI payment simulated and verified.' : 'Awaiting UPI payment...'}
+                </div>
+              </div>
+            </div>
+
+            {/* Escrow Node */}
+            <div className={`timeline-node ${getNodeStatus(2)}`}>
+              <div className="node-icon"><IconLink size={24} /></div>
+              <div className="node-content">
+                <div className="node-title">Monad Smart Escrow</div>
+                <div className="node-desc">
+                  {currentIndex >= 2 ? `Funds locked safely in Monad contract.` : 'Pending escrow lock...'}
+                </div>
+              </div>
+            </div>
+
+            {/* Agent Node */}
+            <div className={`timeline-node ${getNodeStatus(3)}`}>
+              <div className="node-icon"><IconBot size={24} /></div>
+              <div className="node-content">
+                <div className="node-title">Agent Processing</div>
+                <div className="node-desc">
+                  {currentIndex >= 3 ? `${order.agentName} has executed the task.` : 'Awaiting agent allocation...'}
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Node */}
+            <div className={`timeline-node ${getNodeStatus(4)}`}>
+              <div className="node-icon"><IconBox size={24} /></div>
+              <div className="node-content">
+                <div className="node-title">Result Delivery</div>
+                <div className="node-desc">
+                  {currentIndex >= 4 ? 'Results delivered successfully.' : 'Awaiting results from agent...'}
+                </div>
                 
-                {order.deliveryResult.type === 'report' && (
-                  <div className="result-data mt-4">
-                    <div className="data-row">
-                      <span>Sentiment:</span>
-                      <strong className="text-success">{order.deliveryResult.data.overallSentiment}</strong>
-                    </div>
-                    <div className="data-row">
-                      <span>Confidence:</span>
-                      <strong>{order.deliveryResult.data.confidenceScore}%</strong>
-                    </div>
-                    <div className="data-box mt-2">
-                      {order.deliveryResult.data.keyInsights.map((i, idx) => <li key={idx}>{i}</li>)}
-                    </div>
-                  </div>
-                )}
-                
-                {order.deliveryResult.type === 'translation' && (
-                  <div className="result-data mt-4">
-                    <div className="data-box translated-text">
-                      {order.deliveryResult.data.translatedText}
-                    </div>
-                  </div>
-                )}
-                
-                {order.deliveryResult.type === 'image' && (
-                  <div className="result-data mt-4">
-                    <img src={order.deliveryResult.data.imageUrl} alt="Generated" className="result-image" />
+                {/* Result Payload */}
+                {order.status === 'delivered' && order.deliveryResult && (
+                  <div className="result-box fade-in">
+                    <h3>{order.deliveryResult.title}</h3>
+                    <p>{order.deliveryResult.summary}</p>
+                    
+                    {order.deliveryResult.type === 'report' && (
+                      <div className="data-grid">
+                        <div className="data-row">
+                          <span>Sentiment</span>
+                          <strong>{order.deliveryResult.data.overallSentiment}</strong>
+                        </div>
+                        <div className="data-row">
+                          <span>Confidence</span>
+                          <strong>{order.deliveryResult.data.confidenceScore}%</strong>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <button 
+                      className="btn btn-primary mt-4" 
+                      onClick={handleConfirm}
+                      disabled={confirming}
+                      style={{ width: '100%' }}
+                    >
+                      {confirming ? 'Releasing Funds...' : 'Release Payment to Agent'}
+                    </button>
                   </div>
                 )}
               </div>
             </div>
-          )}
+
+            {/* Completion Node */}
+            <div className={`timeline-node ${getNodeStatus(5)}`}>
+              <div className="node-icon"><IconCheckCircle size={24} /></div>
+              <div className="node-content">
+                <div className="node-title">Pipeline Complete</div>
+                <div className="node-desc">
+                  {currentIndex === 5 ? 'Funds released. Transaction closed.' : 'Awaiting delivery confirmation...'}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Sidebar Info */}
-        <div className="status-sidebar">
-          <div className="glass-card-static p-6">
-            <h3>Order Details</h3>
-            <div className="details-list mt-4">
-              <div className="detail-item">
-                <span className="detail-label">Agent</span>
-                <span className="detail-value">{order.agentName}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Amount</span>
-                <span className="detail-value">₹{order.amountINR}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Created</span>
-                <span className="detail-value">{new Date(order.createdAt).toLocaleTimeString()}</span>
-              </div>
+        {/* Sidebar */}
+        <div className="terminal-sidebar">
+          {/* Terminal Output */}
+          <div className="receipt-card">
+            <div className="receipt-header">
+              <IconLink size={14} /> ON-CHAIN RECEIPT
+            </div>
+            <div className="tx-log">
+              {order.txHashes && order.txHashes.fundEscrow ? (
+                <div className="tx-entry">
+                  <span className="tx-label">fund_escrow()</span>
+                  <a href={`https://testnet.monadexplorer.com/tx/${order.txHashes.fundEscrow}`} target="_blank" rel="noopener noreferrer" className="tx-hash">
+                    {order.txHashes.fundEscrow}
+                  </a>
+                </div>
+              ) : (
+                <div className="tx-entry"><span className="tx-label">Awaiting lock_tx...</span></div>
+              )}
+              
+              {order.txHashes && order.txHashes.delivery && (
+                <div className="tx-entry">
+                  <span className="tx-label">submit_delivery()</span>
+                  <a href={`https://testnet.monadexplorer.com/tx/${order.txHashes.delivery}`} target="_blank" rel="noopener noreferrer" className="tx-hash">
+                    {order.txHashes.delivery}
+                  </a>
+                </div>
+              )}
+              
+              {order.txHashes && order.txHashes.releasePayment && (
+                <div className="tx-entry">
+                  <span className="tx-label">release_funds()</span>
+                  <a href={`https://testnet.monadexplorer.com/tx/${order.txHashes.releasePayment}`} target="_blank" rel="noopener noreferrer" className="tx-hash">
+                    {order.txHashes.releasePayment}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
-          {order.txHashes && Object.keys(order.txHashes).length > 0 && (
-            <div className="glass-card-static p-6 mt-6">
-              <h3>On-Chain Receipts</h3>
-              <p className="text-muted text-sm mb-4">Monad Testnet Transactions</p>
-              <div className="tx-list">
-                {order.txHashes.fundEscrow && (
-                  <div className="tx-item">
-                    <span className="tx-label">Escrow Lock</span>
-                    <a href={`https://testnet.monadexplorer.com/tx/${order.txHashes.fundEscrow}`} target="_blank" rel="noopener noreferrer" className="tx-link">
-                      {order.txHashes.fundEscrow.substring(0, 10)}...
-                    </a>
-                  </div>
-                )}
-                {order.txHashes.delivery && (
-                  <div className="tx-item">
-                    <span className="tx-label">Delivery Proof</span>
-                    <a href={`https://testnet.monadexplorer.com/tx/${order.txHashes.delivery}`} target="_blank" rel="noopener noreferrer" className="tx-link">
-                      {order.txHashes.delivery.substring(0, 10)}...
-                    </a>
-                  </div>
-                )}
-                {order.txHashes.releasePayment && (
-                  <div className="tx-item">
-                    <span className="tx-label">Payment Release</span>
-                    <a href={`https://testnet.monadexplorer.com/tx/${order.txHashes.releasePayment}`} target="_blank" rel="noopener noreferrer" className="tx-link">
-                      {order.txHashes.releasePayment.substring(0, 10)}...
-                    </a>
-                  </div>
-                )}
+          <div className="info-card">
+            <h3>Job Details</h3>
+            <div className="info-grid">
+              <div className="info-row">
+                <span className="label">Agent</span>
+                <span className="val">{order.agentName}</span>
+              </div>
+              <div className="info-row">
+                <span className="label">Amount</span>
+                <span className="val text-accent">₹{order.amountINR}</span>
+              </div>
+              <div className="info-row">
+                <span className="label">Started</span>
+                <span className="val">{new Date(order.createdAt).toLocaleTimeString()}</span>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

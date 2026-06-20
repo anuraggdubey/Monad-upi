@@ -13,8 +13,10 @@ import dotenv from "dotenv";
 
 import { seedData } from "./config/database.js";
 import { loadContracts } from "./config/blockchain.js";
+import { initRazorpay, isRazorpayConfigured } from "./services/payment.js";
 import agentRoutes from "./routes/agents.js";
 import orderRoutes, { setBroadcast } from "./routes/orders.js";
+import webhookRoutes, { setWebhookBroadcast } from "./routes/webhook.js";
 
 dotenv.config({ path: "../.env" });
 
@@ -25,6 +27,10 @@ const PORT = process.env.PORT || 3001;
 // ── Middleware ───────────────────────────────────────────────────
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+
+// Raw body for Razorpay webhook signature verification
+app.use("/api/razorpay/webhook", express.raw({ type: "application/json" }));
+
 app.use(express.json());
 
 // Request logging
@@ -86,11 +92,23 @@ function broadcastToOrder(orderId, data) {
 }
 
 setBroadcast(broadcastToOrder);
+setWebhookBroadcast(broadcastToOrder);
 
 // ── API Routes ──────────────────────────────────────────────────
 
 app.use("/api/agents", agentRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/razorpay", webhookRoutes);
+
+// Config endpoint — exposes Razorpay status to frontend (no secrets!)
+app.get("/api/config", (req, res) => {
+  const razorpayConfigured = isRazorpayConfigured();
+  res.json({
+    razorpayConfigured,
+    razorpayKeyId: razorpayConfigured ? process.env.RAZORPAY_KEY_ID : null,
+    paymentMode: razorpayConfigured ? "razorpay" : "simulate",
+  });
+});
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -160,18 +178,27 @@ async function start() {
   console.log("\n⛓️  Loading blockchain contracts...");
   loadContracts();
 
+  // Initialize Razorpay
+  console.log("\n💳 Initializing payment gateway...");
+  await initRazorpay();
+
   // Start server
   server.listen(PORT, () => {
+    const mode = isRazorpayConfigured() ? "RAZORPAY (Real Payments)" : "SIMULATE (Demo Mode)";
     console.log(`\n🚀 Server running at http://localhost:${PORT}`);
     console.log(`   📡 WebSocket at ws://localhost:${PORT}/ws`);
+    console.log(`   💳 Payment mode: ${mode}`);
     console.log(`   📋 API docs: http://localhost:${PORT}/api/health\n`);
     console.log("   Routes:");
-    console.log("   GET  /api/agents          - List agents");
-    console.log("   GET  /api/agents/:id      - Agent details");
-    console.log("   POST /api/orders           - Create order");
+    console.log("   GET  /api/config                  - Payment config");
+    console.log("   GET  /api/agents                  - List agents");
+    console.log("   GET  /api/agents/:id              - Agent details");
+    console.log("   POST /api/orders                  - Create order");
+    console.log("   POST /api/orders/:id/verify-payment - Verify Razorpay payment");
     console.log("   POST /api/orders/:id/simulate-pay - Simulate UPI payment");
     console.log("   POST /api/orders/:id/confirm      - Confirm & release");
-    console.log("   GET  /api/orders/:id       - Order status");
+    console.log("   GET  /api/orders/:id              - Order status");
+    console.log("   POST /api/razorpay/webhook        - Razorpay webhook");
     console.log("");
   });
 }
